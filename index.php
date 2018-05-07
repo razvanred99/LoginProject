@@ -18,7 +18,6 @@ if (!isset($_POST) || empty($_POST) || !isset($_POST['username']) || !isset($_PO
 
 else {
     $usersConnection = new mysqli("localhost", "root", "", "LoginProjectUsers");
-    $dataConnection = new mysqli("localhost", "root", "", "LoginProjectData");
 
     if ($usersConnection->connect_error) {
         header("location: login.php");
@@ -30,6 +29,8 @@ else {
             if ($obj->Password === hash('sha256', $_POST['password'])) {
 
                 $result->close();
+                $dataConnection = new mysqli("localhost", "root", "", "LoginProjectData");
+
                 if ($result = $dataConnection->query("SELECT * FROM PersonalInformation WHERE Username='" . $_POST['username'] . "'")) {
 
                     $req_data=$result->fetch_array(MYSQLI_ASSOC);
