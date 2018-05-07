@@ -80,33 +80,51 @@
         </table>
     </form>
 <?php } else {
-    $dbname = "LoginProjectUsers";
+    $usersDB = "LoginProjectUsers";
+    $dataDB = "LoginProjectData";
     $userTable = "Users";
+    $dataTable="PersonalInformation";
 
-    $connection = new mysqli("localhost", "root", "");
+    $usersConnection = new mysqli("localhost", "root", "");
 
-    if ($connection->connect_error)
-        die("Connection failed: " . $connection->connect_error);
+    if ($usersConnection->connect_error)
+        die("Connection failed: " . $usersConnection->connect_error);
+
+    $dataConnection = new mysqli("localhost", "root", "");
+
+    if ($dataConnection->connect_error)
+        die("Connection to data failed: " . $dataConnection->connect_error);
 
     $psw = hash("sha256", $_POST["password"]);
     $name = $_POST['name'];
     $surname = $_POST['surname'];
     $username = $_POST['username'];
 
-    if ($connection->multi_query("CREATE DATABASE IF NOT EXISTS $dbname; 
-                                            USE $dbname;
-                                            CREATE TABLE IF NOT EXISTS $userTable (Name VARCHAR(64) NOT NULL,Surname VARCHAR(64) NOT NULL, Username VARCHAR(16) NOT NULL PRIMARY KEY, Password VARCHAR(64) NOT NULL);
-                                           INSERT INTO $userTable VALUES (\"$name\",\"$surname\",\"$username\",\"$psw\");")) {
+    if ($usersConnection->multi_query("CREATE DATABASE IF NOT EXISTS $usersDB; 
+                                            USE $usersDB;
+                                            CREATE TABLE IF NOT EXISTS $userTable (Username VARCHAR(16) NOT NULL PRIMARY KEY, Password VARCHAR(64) NOT NULL)ENGINE=INNODB;
+                                           INSERT INTO $userTable VALUES (\"$username\",\"$psw\");")) {
 
-        if($connection->errno===0)
-        echo "delicate ".$connection->errno;
-        else
-            echo "shit";
+        if ($usersConnection->errno === 0) {
+
+            if($dataConnection->multi_query("CREATE DATABASE IF NOT EXISTS $dataDB;
+                                                    USE $dataDB;
+                                                    CREATE TABLE IF NOT EXISTS $dataTable (Username VARCHAR(16) NOT NULL UNIQUE,Name VARCHAR(64) NOT NULL,Surname VARCHAR(64) NOT NULL)ENGINE=INNODB;
+                                                    INSERT INTO $dataTable VALUES (\"$username\",\"$name\",\"$surname\")"))
+                echo "Registration OK";
+            else
+                echo "Error while inserting data";
+
+        } else
+            echo "Error while inserting user";
     } else
-        echo "Error handling DB: " . $connection->error;
+        echo "Error handling DB: " . $usersConnection->error;
 
-    $connection->close();
-} ?>
+    $usersConnection->close() ?>
+
+    <button onclick="location.href='login.php'" type="button">Back to login</button>
+
+<?php } ?>
 
 </body>
 
